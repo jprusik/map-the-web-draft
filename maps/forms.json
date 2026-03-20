@@ -58,7 +58,7 @@
           "password": ["input#pass"]
         }
       }
-    ],
+    ]
   },
   "factorio.com": {
     "pathnames": {
