@@ -22,7 +22,9 @@ tag. See the project [README](../../README.md) for broader mapping philosophies.
     - [Category](#category)
   - [Selectors](#selectors)
     - [Selector Arrays](#selector-arrays)
-    - [Shadow DOM Selectors](#shadow-dom-selectors)
+    - [Boundary-Crossing Selectors (`>>>`)](#boundary-crossing-selectors-)
+      - [Shadow DOM](#shadow-dom)
+      - [Iframes](#iframes)
   - [Null and Empty Semantics](#null-and-empty-semantics)
   - [Authoring Guidelines](#authoring-guidelines)
 
@@ -295,8 +297,8 @@ selectors does not imply how a consumer should make use of them (e.g. use all or
 only the first found). Additionally, the _order_ of selectors does not imply
 precedence.
 
-> [!IMPORTANT] Cases where input selectors are mutually-exclusive should be
-> represented within independent `forms` array entries.
+> [!IMPORTANT]
+> Cases where input selectors are mutually-exclusive should be represented within independent `forms` array entries.
 
 ```json
 {
@@ -308,13 +310,27 @@ precedence.
 }
 ```
 
-### Shadow DOM Selectors
+### Boundary-Crossing Selectors (`>>>`)
 
-The `>>>` combinator is used to represent the boundary between a shadow host
-element and its shadow root's content
+The `>>>` combinator represents a boundary crossing from a host element into
+nested content that standard CSS selectors cannot reach. The segments between
+`>>>` are standard CSS selectors. Each `>>>` represents one boundary crossing.
+
+> [!IMPORTANT]
+> The `>>>` combinator is not a standard CSS combinator; it is a
+> convention used by this project. Consumers are responsible for implementing
+> the appropriate traversal when encountering this combinator.
+
+The boundary type is determined by the element matched before `>>>`:
+
+- **No `iframe` tag** in the preceding segment → shadow DOM boundary
+- **`iframe` tag** in the preceding segment → iframe boundary
+
+#### Shadow DOM
+
+When `>>>` follows a non-iframe element, it indicates a transition from a shadow
+host into its shadow root's content
 ([MDN docs](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM)).
-Each `>>>` represents one shadow boundary crossing. This allows representation
-of elements within nested shadow roots.
 
 ```json
 {
@@ -330,10 +346,29 @@ For nested shadow roots:
 }
 ```
 
-> [!IMPORTANT] The `>>>` combinator is not a standard CSS combinator; it is a
-> convention used by this project. The segments between `>>>` are standard CSS
-> selectors. Consumers are responsible for implementing shadow DOM traversal
-> when encountering this combinator.
+#### Iframes
+
+When `>>>` follows a selector that includes the `iframe` tag, it indicates a
+transition into the iframe's content document. The `iframe` tag **must** be
+present in the preceding selector segment so that consumers can determine the
+boundary type from the selector alone.
+
+```json
+{
+  "username": ["iframe#login-frame >>> input[name='username']"]
+}
+```
+
+Mixed boundary types compose naturally:
+
+```json
+{
+  "username": ["iframe.auth >>> div#my-shadow-host >>> input[name='user']"]
+}
+```
+
+> [!TIP]
+> Remember, `iframes` [cannot be a shadow host](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#elements_you_can_attach_a_shadow_to)
 
 ## Null and Empty Semantics
 
@@ -359,37 +394,43 @@ The distinction between "irrelevant" and "no information" is important. An
 1. **Test your selectors.** Open the target page in a browser, open DevTools,
    and verify each selector with `document.querySelector()`.
 
-2. **Be specific.** Prefer ID-based or attribute-based selectors over positional
+2. **Target the rendered state.** Selectors should match elements in their final
+   rendered form, not necessarily the initial HTML. Many sites load form fields
+   dynamically via JavaScript; test selectors after the page has fully loaded.
+   Consumers are responsible for their own timing strategy (e.g. polling,
+   MutationObserver) when elements are not immediately present.
+
+3. **Be specific.** Prefer ID-based or attribute-based selectors over positional
    ones (`:nth-child`, tag-only). Specific selectors are more resilient to page
    layout changes.
 
-3. **Use `>>>` only when necessary.** Only use shadow DOM piercing when the
+4. **Use `>>>` only when necessary.** Only use shadow DOM piercing when the
    target element is actually inside a shadow root.
 
-4. **Skip intentionally.** Use `null` on pages where mapping is deliberately
+5. **Skip intentionally.** Use `null` on pages where mapping is deliberately
    absent (e.g. search pages, pages with no relevant forms).
 
-5. **Avoid redundancy.** If all pages on a host use the same form, put it in
+6. **Avoid redundancy.** If all pages on a host use the same form, put it in
    host-level `forms` and omit `pathnames`. Only add pathname entries for pages
    that differ.
 
-6. **Keep pathnames exact.** Pathname keys must exactly match the URL path.
+7. **Keep pathnames exact.** Pathname keys must exactly match the URL path.
    Wildcards and pattern matching are not supported.
 
-7. **Treat hosts as exact matches.** `example.com`, `subdomain.example.com`, and
+8. **Treat hosts as exact matches.** `example.com`, `subdomain.example.com`, and
    `example.com:8443` are different host keys. Author entries under the
    non-`www` host as canonical; only add a separate `www.` entry if its forms
    differ from the non-`www` counterpart (see
    [The `www` subdomain](#the-www-subdomain)).
 
-8. **Omit what you don't need.** If a host has no site-wide fallback, omit
+9. **Omit what you don't need.** If a host has no site-wide fallback, omit
    `forms`. If there are no page-specific entries, omit `pathnames`.
 
-9. **Remove stale entries.** If a site updates to use standard mechanisms (e.g.
-   `autocomplete` attributes) that make the Map entry unnecessary, remove it.
-   Maps are a stopgap, not a permanent fixture.
+10. **Remove stale entries.** If a site updates to use standard mechanisms (e.g.
+    `autocomplete` attributes) that make the Map entry unnecessary, remove it.
+    Maps are a stopgap, not a permanent fixture.
 
-10. **Document non-obvious selectors.** If a selector targets an element through
+11. **Document non-obvious selectors.** If a selector targets an element through
     an unusual DOM structure (deeply nested shadow roots, dynamically injected
     containers), add context in the change pull request explaining why that path
     is necessary.
