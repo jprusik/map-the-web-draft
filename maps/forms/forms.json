@@ -26,7 +26,9 @@
           "forms": [
             {
               "selectors": {
-                "username": ["#form-container >>> form > div:first-child > div >>> input[name='username']"]
+                "username": [
+                  "#form-container >>> form > div:first-child > div >>> input[name='username']"
+                ]
               }
             }
           ]
