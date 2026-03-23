@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/bitwarden/map-the-web/main/maps/forms/forms.schema.json",
   "title": "Forms Map",
-  "description": "Describes the locations of form fields on web pages using CSS selectors. See forms.md for full documentation.",
+  "description": "Describes the locations of form fields on web pages using CSS selectors. See README.md for full documentation.",
   "type": "object",
   "properties": {
     "version": {
@@ -115,7 +115,7 @@
     },
     "deepSelectorArray": {
       "type": "array",
-      "description": "Unordered alternatives for locating elements of a given concern. The '>>>' combinator indicates shadow DOM boundary crossings.",
+      "description": "Unordered alternatives for locating elements of a given concern. The '>>>' combinator indicates boundary crossings (shadow DOM or iframe).",
       "items": {
         "$ref": "#/$defs/deepSelector"
       },
@@ -123,7 +123,7 @@
     },
     "deepSelector": {
       "type": "string",
-      "description": "A CSS selector, optionally using '>>>' to pierce shadow DOM boundaries.",
+      "description": "A CSS selector, optionally using '>>>' to pierce shadow DOM or iframe boundaries.",
       "minLength": 1
     }
   }

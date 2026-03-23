@@ -49,10 +49,10 @@ the web.
 
 ## Using Maps
 
-All Maps can be found in the `maps` directory and are represented as JSON files
-named after their core concern (e.g. `forms.json`). Maps may optionally include
-sibling files with shared naming conventions in order to better document or
-improve their usage (e.g. `forms.md`).
+Each Map lives in its own subdirectory under `maps/`, named after its core
+concern (e.g. `maps/forms/`). A Map directory contains the JSON data file
+(`forms.json`), its schema (`forms.schema.json`), and a `README.md` documenting
+the Map's structure and usage.
 
 ### Versioning
 
@@ -71,7 +71,7 @@ warn on unrecognized major versions.
 ## Glossary
 
 - **Map**: A JSON structure describing a categorical concern of real websites.
-  Each Map focuses on a single concern (e.g. forms) and lives in the `maps/`
+  Each Map focuses on a single concern (e.g. forms) and lives in the `maps/` as a named
   directory alongside its documentation and schema.
 
 - **Consumer**: Any application or tool that reads and acts on a Map. The Map

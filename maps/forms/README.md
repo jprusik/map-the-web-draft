@@ -10,6 +10,7 @@ describes the user-facing concept, which may or may not utilize the HTML `form`
 tag. See the project [README](../../README.md) for broader mapping philosophies.
 
 - [Forms Map](#forms-map)
+  - [Limitations](#limitations)
   - [Data Structure Overview](#data-structure-overview)
   - [Host Keys](#host-keys)
     - [The `www` subdomain](#the-www-subdomain)
@@ -27,6 +28,18 @@ tag. See the project [README](../../README.md) for broader mapping philosophies.
       - [Iframes](#iframes)
   - [Null and Empty Semantics](#null-and-empty-semantics)
   - [Authoring Guidelines](#authoring-guidelines)
+
+## Limitations
+
+There is presently no mechanism embedded within Forms Map data for:
+
+- describing the age of individual host entries
+- annotating entries (descriptions of why a particular selector is needed, etc.)
+- form rendering timings
+- distinguishing URLs by query string and/or fragment which affect rendered form content
+- describing dynamically-renamed fields (e.g. sites that randomize attribute values on each render)
+- form inputs that represent user confirmation (e.g. agree to terms of service, etc)
+- indicators of irrelevant data at the form field level
 
 ## Data Structure Overview
 
@@ -85,6 +98,9 @@ A complex entry may look like:
 
 ## Host Keys
 
+The required top-level `hosts` object contains all host entries in the Map. An
+empty `hosts` object (`{}`) is valid and represents a Map with no entries.
+
 Each key in the `hosts` object is a **host**: a hostname, or a hostname with a
 port when a non-default port is used. Do not include the protocol, path, query
 string, or fragment. Do not include default ports such as `443` and `80`.
@@ -96,6 +112,7 @@ string, or fragment. Do not include default ports such as `443` and `80`.
     "login.subdomain.example.com": { ... },
     "example.com:1234": { ... }
   }
+}
 ```
 
 Host keys are **exact-match only**. There is no wildcard, suffix, or domain
@@ -193,6 +210,31 @@ them.
 Pathname keys should omit trailing slashes. Consumers are expected to normalize
 trailing slashes before lookup (e.g. `/login/` becomes `/login`). The root path
 is always `/`.
+
+For forms that **only** appear on the domain's root page, use `"/"` as the
+pathname key with no host-level `forms` fallback:
+
+```json
+{
+  "hosts": {
+    "example.com": {
+      "pathnames": {
+        "/": {
+          "forms": [
+            {
+              "category": "account-login",
+              "selectors": {
+                "username": ["input#email"],
+                "password": ["input#pass"]
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+```
 
 ## Forms
 
@@ -368,7 +410,7 @@ Mixed boundary types compose naturally:
 ```
 
 > [!TIP]
-> Remember, `iframes` [cannot be a shadow host](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#elements_you_can_attach_a_shadow_to)
+> Remember, `iframes` [cannot be a shadow host](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#elements_you_can_attach_a_shadow_to).
 
 ## Null and Empty Semantics
 
@@ -404,8 +446,8 @@ The distinction between "irrelevant" and "no information" is important. An
    ones (`:nth-child`, tag-only). Specific selectors are more resilient to page
    layout changes.
 
-4. **Use `>>>` only when necessary.** Only use shadow DOM piercing when the
-   target element is actually inside a shadow root.
+4. **Use `>>>` only when necessary.** Only use boundary-crossing selectors when
+   the target element is actually inside a shadow root or iframe.
 
 5. **Skip intentionally.** Use `null` on pages where mapping is deliberately
    absent (e.g. search pages, pages with no relevant forms).
