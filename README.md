@@ -9,6 +9,8 @@ semantics or fully-adopted standards.
   - [Limitations](#limitations)
   - [Using Maps](#using-maps)
     - [Versioning](#versioning)
+      - [Schema Versions](#schema-versions)
+      - [Release Tags](#release-tags)
     - [Releases](#releases)
   - [Glossary](#glossary)
 
@@ -36,8 +38,8 @@ With the aforementioned goals and intent in mind, Maps should:
 - be removed from a given Map if a site becomes navigable by other standard
   means for those concerns
 - avoid staleness and be kept up-to-date
-- be verified by humans
-- not be consumed as an absolute guarantee; websites can and will change
+
+Because this project strives to deliver accountable curated guidance, the above concerns must ultimately and necessarily be vetted/validated by humans.
 
 Maps are not intended to replace standard functionalities of the web, only to
 serve as a stopgap pending broader consensus and adoption of accepted standards.
@@ -46,7 +48,9 @@ serve as a stopgap pending broader consensus and adoption of accepted standards.
 
 While this project aspires to map all discovered gaps of the web, this is
 largely expected to be unachievable, given the size and ever-changing nature of
-the web.
+the web. Consequently Maps should not be consumed as an absolute guarantee; websites can and will change.
+
+Map-specific limitations can be found in their respective README documents.
 
 ## Using Maps
 
@@ -57,8 +61,12 @@ the Map's structure and usage.
 
 ### Versioning
 
+This project has two distinct versioning schemes for independent concerns: schema versions and release tags.
+
+#### Schema Versions
+
 Each Map file includes a required top-level `version` field that identifies
-which revision of its schema the file conforms to. This project uses
+which revision of its schema the file conforms to. Schema versions use
 [semantic versioning](https://semver.org/):
 
 - **Major**: Breaking changes to the data structure or semantics
@@ -67,7 +75,17 @@ which revision of its schema the file conforms to. This project uses
 - **Patch**: Documentation or schema clarifications with no data-level impact
 
 Consumers should check the `version` field before processing a Map and reject or
-warn on unrecognized major versions.
+warn on unrecognized major versions. Build filenames include the schema major
+version (e.g. `forms.v1.json`), so a breaking schema change can ship alongside
+the previous version (`forms.v1.json` and `forms.v2.json` in the same release),
+allowing legacy consumers to continue fetching the version they support.
+
+#### Release Tags
+
+Release tags use a date-based format: `v<YYYYMMDD>.<run>` (e.g. `v20260324.1`).
+The date indicates when the build was produced; the run number disambiguates
+multiple releases on the same day. Release tags reflect changes to Map _data_
+(new or updated host entries) and are independent of schema versions.
 
 ### Releases
 
@@ -85,11 +103,6 @@ https://<project URL>/releases/download/<tag>/<map name>.v1.json
 ```
 
 Example: <https://github.com/bitwarden/map-the-web/releases/latest/download/forms.v1.json>
-
-Build filenames include the schema major version (e.g. `forms.v1.json`). When a
-breaking schema change is released, both `forms.v1.json` and `forms.v2.json` can
-coexist in the same release, allowing legacy consumers to continue fetching the
-version they support.
 
 Each release includes a `manifest.json` with build metadata (timestamp, git SHA,
 and per-map schema versions) that consumers can use to check staleness or verify
