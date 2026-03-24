@@ -79,14 +79,19 @@ SHA-256 checksums.
 **Latest build** (always points to the newest release):
 
 ```text
-https://github.com/bitwarden/map-the-web/releases/latest/download/forms.json
+https://github.com/bitwarden/map-the-web/releases/latest/download/forms.v1.json
 ```
 
 **Pinned build** (locked to a specific release tag):
 
 ```text
-https://github.com/bitwarden/map-the-web/releases/download/<tag>/forms.json
+https://github.com/bitwarden/map-the-web/releases/download/<tag>/forms.v1.json
 ```
+
+Build filenames include the schema major version (e.g. `forms.v1.json`). When a
+breaking schema change is released, both `forms.v1.json` and `forms.v2.json` can
+coexist in the same release, allowing legacy consumers to continue fetching the
+version they support.
 
 Each release includes a `manifest.json` with build metadata (timestamp, git SHA,
 and per-map schema versions) that consumers can use to check staleness or verify

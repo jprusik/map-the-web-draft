@@ -80,15 +80,11 @@ jobs:
           **Timestamp**: ${TIMESTAMP}
           **Git SHA**: ${GITHUB_SHA}
 
-          ### Assets
-          - \`forms.json\` — Minified forms map
-          - \`forms.schema.json\` — Forms map schema
-          - \`manifest.json\` — Build metadata
-          - \`checksums.sha256\` — SHA-256 checksums
+          See \`manifest.json\` for build metadata and per-map schema versions.
+          See \`checksums.sha256\` to verify asset integrity.
           EOF
           )" \
             --latest \
-            dist/maps/forms/forms.json \
-            dist/maps/forms/forms.schema.json \
             dist/manifest.json \
-            dist/checksums.sha256
+            dist/checksums.sha256 \
+            dist/maps/**/*.json

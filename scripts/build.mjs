@@ -78,14 +78,18 @@ for (const map of maps) {
   const outDir = join(DIST, "maps", map.name);
   mkdirSync(outDir, { recursive: true });
 
+  // Extract major version for filename suffix
+  const majorVersion = map.data.version.split(".")[0];
+  const versionedName = `${map.name}.v${majorVersion}`;
+
   // Minify data JSON
   const minified = JSON.stringify(map.data);
-  const outDataFile = join(outDir, basename(map.dataFile));
+  const outDataFile = join(outDir, `${versionedName}.json`);
   writeFileSync(outDataFile, minified);
   console.log(`Minified: ${outDataFile} (${minified.length} bytes)`);
 
   // Copy schema as-is
-  const outSchemaFile = join(outDir, basename(map.schemaFile));
+  const outSchemaFile = join(outDir, `${versionedName}.schema.json`);
   cpSync(map.schemaFile, outSchemaFile);
 
   // Record in manifest
