@@ -13,6 +13,10 @@
     "hosts": {
       "type": "object",
       "description": "Maps hostnames to their form descriptions.",
+      "propertyNames": {
+        "description": "Hostname with optional non-default port. Must not contain protocol, path, query string, or fragment characters (/, ?, #).",
+        "pattern": "^[^/?#]+$"
+      },
       "additionalProperties": {
         "oneOf": [
           { "$ref": "#/$defs/targetingRules" },
@@ -65,7 +69,8 @@
         ]
       },
       "propertyNames": {
-        "pattern": "^/[^?#]*$"
+        "description": "URL pathname starting with '/'. Must not contain query strings or fragments, and must not have a trailing slash (excepting a sole '/' value itself).",
+        "pattern": "^/([^?#/]+(/[^?#/]+)*)?$"
       },
       "minProperties": 1
     },

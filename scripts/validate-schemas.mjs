@@ -30,7 +30,9 @@ for (const file of files) {
   const schemaPath = join(dir, `${name}.schema.json`);
 
   if (!existsSync(schemaPath)) {
-    console.error(`No schema found for ${file} (expected ${schemaPath})`);
+    console.error(
+      `\x1b[31mNo schema found for ${file} (expected ${schemaPath})\x1b[0m`,
+    );
     hasErrors = true;
     continue;
   }
@@ -40,13 +42,28 @@ for (const file of files) {
 
   const validate = ajv.compile(schema);
   if (!validate(data)) {
-    console.error(`Validation failed: ${file}`);
+    console.error(`\x1b[31mValidation failed: ${file}\x1b[0m`);
     for (const err of validate.errors) {
-      console.error(`  ${err.instancePath || "/"}: ${err.message}`);
+      console.error(
+        `\x1b[31m  ${err.instancePath || "/"}: ${err.message}\x1b[0m`,
+      );
     }
     hasErrors = true;
   } else {
-    console.log(`Valid: ${file}`);
+    console.log(`\x1b[32mValid: ${file}\x1b[0m`);
+  }
+
+  // Warn on www. host keys
+  if (data.hosts) {
+    for (const host of Object.keys(data.hosts)) {
+      if (host.startsWith("www.")) {
+        console.warn(
+          `\x1b[33mWarning: ${file} - host key "${host}" uses a www. prefix. ` +
+            `Author under the non-www host as canonical unless hosts differ. ` +
+            `See the ${name} Map README for guidance.\x1b[0m`,
+        );
+      }
+    }
   }
 }
 

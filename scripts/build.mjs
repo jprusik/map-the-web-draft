@@ -52,6 +52,18 @@ for (const map of maps) {
     console.log(`Validated: ${map.dataFile}`);
   }
 
+  // Warn on www. host keys
+  if (data.hosts) {
+    for (const host of Object.keys(data.hosts)) {
+      if (host.startsWith("www.")) {
+        console.warn(
+          `\x1b[33mWarning: ${map.dataFile} - host key "${host}" uses a www. prefix. ` +
+            `Author under the non-www host as canonical unless hosts differ.\x1b[0m`,
+        );
+      }
+    }
+  }
+
   map.data = data;
   map.schema = schema;
 }
