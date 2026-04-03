@@ -7,14 +7,22 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   check:
+    name: Lint, validate, and check formatting
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+          # Full history is required so the selector linter can diff the PR
+          # head against origin/<base-ref> to scope annotations to changed
+          # lines.
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
@@ -23,6 +31,12 @@ jobs:
           cache-dependency-path: "**/package-lock.json"
           node-version-file: ".nvmrc"
 
-      - run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-      - run: npm run check
+      - name: Run checks
+        env:
+          # Gates inline PR annotations from the forms map selector linter
+          ENABLE_SELECTOR_LINT_PR_FEEDBACK:
+            ${{ vars.ENABLE_SELECTOR_LINT_PR_FEEDBACK }}
+        run: npm run check

@@ -4,11 +4,12 @@ import stripJsonComments from "strip-json-comments";
 import { readFileSync, existsSync } from "fs";
 import { basename, dirname, join } from "path";
 import { glob } from "node:fs/promises";
+import { red, yellow, green } from "./utils.mjs";
 
 const ajv = new Ajv2020({ allErrors: true });
 addFormats(ajv);
 
-let files = process.argv.slice(2);
+let files = process.argv.slice(2).filter((f) => !f.endsWith(".schema.json"));
 
 if (files.length === 0) {
   const matches = glob("maps/**/*.jsonc");
@@ -27,30 +28,36 @@ let hasErrors = false;
 for (const file of files) {
   const dir = dirname(file);
   const name = basename(file, ".jsonc");
-  const schemaPath = join(dir, `${name}.schema.json`);
 
-  if (!existsSync(schemaPath)) {
-    console.error(
-      `\x1b[31mNo schema found for ${file} (expected ${schemaPath})\x1b[0m`,
-    );
+  // Parse data first to read schemaVersion for schema file lookup
+  const data = JSON.parse(stripJsonComments(readFileSync(file, "utf-8")));
+
+  if (!data.schemaVersion) {
+    console.error(red(`No schemaVersion found in ${file}`));
     hasErrors = true;
     continue;
   }
 
-  const data = JSON.parse(stripJsonComments(readFileSync(file, "utf-8")));
+  const majorVersion = data.schemaVersion.split(".")[0];
+  const schemaPath = join(dir, `${name}.v${majorVersion}.schema.json`);
+
+  if (!existsSync(schemaPath)) {
+    console.error(red(`No schema found for ${file} (expected ${schemaPath})`));
+    hasErrors = true;
+    continue;
+  }
+
   const schema = JSON.parse(readFileSync(schemaPath, "utf-8"));
 
   const validate = ajv.compile(schema);
   if (!validate(data)) {
-    console.error(`\x1b[31mValidation failed: ${file}\x1b[0m`);
+    console.error(red(`Validation failed: ${file}`));
     for (const err of validate.errors) {
-      console.error(
-        `\x1b[31m  ${err.instancePath || "/"}: ${err.message}\x1b[0m`,
-      );
+      console.error(red(`  ${err.instancePath || "/"}: ${err.message}`));
     }
     hasErrors = true;
   } else {
-    console.log(`\x1b[32mValid: ${file}\x1b[0m`);
+    console.log(green(`Valid: ${file}`));
   }
 
   // Warn on www. host keys
@@ -58,9 +65,11 @@ for (const file of files) {
     for (const host of Object.keys(data.hosts)) {
       if (host.startsWith("www.")) {
         console.warn(
-          `\x1b[33mWarning: ${file} - host key "${host}" uses a www. prefix. ` +
-            `Author under the non-www host as canonical unless hosts differ. ` +
-            `See the ${name} Map README for guidance.\x1b[0m`,
+          yellow(
+            `Warning: ${file} - host key "${host}" uses a www. prefix. ` +
+              `Prefer adding host entries without the "www." prefix, unless rules differ between the "www." and un-prefixed domains. ` +
+              `See the ${name} Map README for guidance.`,
+          ),
         );
       }
     }
