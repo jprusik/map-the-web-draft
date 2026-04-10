@@ -22,6 +22,22 @@
         }
       ],
       "pathnames": {
+        "/forms/login/ambiguous-inputs": {
+          "forms": [
+            {
+              "category": "account-login",
+              "container": ["div.ambiguous-inputs-container"],
+              "fields": {
+                "username": ["input[name='u']"],
+                // The input type for password here is "text"
+                "password": ["input[name='p']"]
+              },
+              "actions": {
+                "submit": ["button#ambiguous-inputs-go"]
+              }
+            }
+          ]
+        },
         // ── Test coverage: pathname-specific override (card payment) ──
         "/forms/payment/card-payment": {
           "forms": [
